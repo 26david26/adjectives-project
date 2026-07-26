@@ -1,63 +1,7 @@
-import { Book, Context } from '../shared/core.js';
-import { questions } from '../shared/questions.js';
+import { Book } from '../shared/core.js';
+import { Questions } from '../shared/questions.js';
 import { formatContext } from './formatter.js';
 import { create } from './util.js';
-
-const ADJECTIVES_CONSTRAINTS: { [type: string]: { [adj: string]: boolean[] } } = {
-    'scheme': {
-        'cohen-macaulay': [],
-        'connected': [true],
-        'excellent': [],
-        // 'finite-dimensional',
-        // 'integral',
-        // 'irreducible',
-        'jacobson': [],
-        // 'locally-noetherian',
-        // 'noetherian',
-        // 'normal',
-        // 'quasi-affine',
-        // 'quasi-compact',
-        // 'quasi-separated',
-        'reduced': [true],
-        // 'regular',
-        // 'semi-separated',
-        // 'separated',
-    },
-    'morphism': {
-        // 'affine',
-        // 'closed-immersion',
-        // 'closed',
-        // 'etale',
-        // 'faithfully-flat',
-        // 'finite',
-        // 'flat',
-        // 'formally-etale',
-        // 'formally-smooth',
-        // 'formally-unramified',
-        // 'homeomorphism',
-        // 'immersion',
-        // 'locally-of-finite-presentation',
-        // 'locally-of-finite-type',
-        // 'of-finite-presentation',
-        // 'of-finite-type',
-        // 'open-immersion',
-        // 'open',
-        // 'proper',
-        // 'quasi-affine',
-        // 'quasi-compact',
-        // 'quasi-finite',
-        // 'quasi-separated',
-        // 'regular',
-        // 'semi-separated',
-        // 'separated',
-        // 'smooth',
-        // 'surjective',
-        // 'syntomic': [],
-        // 'universally-closed',
-        // 'universally-open',
-        // 'unramified'
-    }
-};
 
 function shuffle<T>(array: T[]): void {
     let index = array.length;
@@ -84,11 +28,9 @@ export function pageQuestions(summary: Book): HTMLElement {
     // table
     const table = create('table', { style: 'margin-bottom: 4px;' });
     page.append(table);
-    setTimeout(() => {
+    fetch('json/questions.json', { cache: 'reload' }).then(response => response.json()).then((data: Questions) => {
         table.append(create('tr', {}, create('th', {}, 'Questions')));
-        const qs: Context[] = [];
-        for (const type in ADJECTIVES_CONSTRAINTS)
-            qs.push(...questions(summary, type, ADJECTIVES_CONSTRAINTS[type]));
+        const qs = data.questions;
         console.log(`#questions = ${qs.length}`);
         shuffle(qs);
         let i = 0;
@@ -99,14 +41,17 @@ export function pageQuestions(summary: Book): HTMLElement {
                 create('td', {}, [
                     create('span', {}, [
                         'Does there exist ',
-                        formatContext(summary, question),
+                        formatContext(summary, question.context),
                         '?'
                     ])
                 ])
             ]));
         }
         loading.remove();
-    }, 0);
+    }).catch(() => {
+        loading.remove();
+        table.append(create('tr', {}, create('td', {}, 'Failed to load questions.json ..')));
+    });
 
     return page;
 }

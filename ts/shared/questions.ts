@@ -1,6 +1,69 @@
 import { Assistant, ContradictionError, Matcher } from './assistant.js';
 import { Book, Context } from './core.js';
 
+export const ADJECTIVES_CONSTRAINTS: { [type: string]: { [adj: string]: boolean[] } } = {
+    'scheme': {
+        'cohen-macaulay': [],
+        'connected': [true],
+        'excellent': [],
+        // 'finite-dimensional',
+        // 'integral',
+        // 'irreducible',
+        'jacobson': [],
+        // 'locally-noetherian',
+        // 'noetherian',
+        // 'normal',
+        // 'quasi-affine',
+        // 'quasi-compact',
+        // 'quasi-separated',
+        'reduced': [true],
+        // 'regular',
+        // 'semi-separated',
+        // 'separated',
+    },
+    'morphism': {
+        // 'affine',
+        // 'closed-immersion',
+        // 'closed',
+        // 'etale',
+        // 'faithfully-flat',
+        // 'finite',
+        // 'flat',
+        // 'formally-etale',
+        // 'formally-smooth',
+        // 'formally-unramified',
+        // 'homeomorphism',
+        // 'immersion',
+        // 'locally-of-finite-presentation',
+        // 'locally-of-finite-type',
+        // 'of-finite-presentation',
+        // 'of-finite-type',
+        // 'open-immersion',
+        // 'open',
+        // 'proper',
+        // 'quasi-affine',
+        // 'quasi-compact',
+        // 'quasi-finite',
+        // 'quasi-separated',
+        // 'regular',
+        // 'semi-separated',
+        // 'separated',
+        // 'smooth',
+        // 'surjective',
+        // 'syntomic': [],
+        // 'universally-closed',
+        // 'universally-open',
+        // 'unramified'
+    }
+};
+
+// Shape of `public/json/questions.json`, precomputed by `script-build-questions.ts`:
+// a question is a context whose subject has `adjectives` many adjectives assigned.
+export const QUESTION_ID = 'X'; // id of the subject of a question, within its context
+
+export type Question = { type: string, adjectives: number, context: Context };
+export type Questions = { maxAdjectives: { [type: string]: number }, questions: Question[] };
+
 export function combinations<T>(array: T[], size: number): T[][] {
     const result: T[][] = [];
     function p(tuple: T[], i: number) {
@@ -34,7 +97,7 @@ export function questions(summary: Book, type: string, constraints: { [adj: stri
     const questions: Context[] = []; // contains the original questions
     const questionsDeduced: Context[] = []; // contains the deduced contexts
 
-    const id = 'X'; // dummy name
+    const id = QUESTION_ID; // dummy name
 
     // GENERATE QUESTIONS
     for (let n = 1; n <= maxAdjectives; ++n) { // loop over number of adjectives
